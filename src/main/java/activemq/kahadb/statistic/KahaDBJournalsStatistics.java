@@ -85,8 +85,6 @@ public class KahaDBJournalsStatistics {
         if(journalStatistic.hasStatistic()) {
             showJournalDestinationStatistics(journalStatistic);
             showJournalCommandStatistics(journalStatistic);
-
-
         }
 
         showSeparator(2);
@@ -194,7 +192,6 @@ public class KahaDBJournalsStatistics {
 
         try {
             showStatistic(sourceDir, useAnyKeyToContinue);
-            showSeparator(2);
         }
         catch (Throwable throwable) {
             showException(throwable);

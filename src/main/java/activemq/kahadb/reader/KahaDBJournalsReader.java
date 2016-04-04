@@ -56,6 +56,10 @@ public class KahaDBJournalsReader {
             while (location != null) {
                 File nextFile = journal.getFile(location.getDataFileId());
                 if(lastFile == null || !lastFile.equals(nextFile)) {
+                    if(lastFile != null) {
+                        showSeparator();
+                    }
+
                     if(useAnyKeyToContinue && lastFile != null) {
                         pressAnyKeyToContinue();
                         showSeparator();
