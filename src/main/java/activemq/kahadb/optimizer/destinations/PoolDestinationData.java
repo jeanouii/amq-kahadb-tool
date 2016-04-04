@@ -200,6 +200,10 @@ public class PoolDestinationData {
     }
     //endregion
     //-------------------------------------------------------------------------
+    public boolean isEmpty() {
+        return getTopicCount() == 0 && getQueueCount() == 0;
+    }
+    //-------------------------------------------------------------------------
     public int getTopicCount() {
         return topicsDestinationData.size();
     }

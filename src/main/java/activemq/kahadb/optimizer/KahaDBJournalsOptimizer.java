@@ -15,33 +15,70 @@ import static activemq.kahadb.utils.KahaDBUtils.*;
 
 public class KahaDBJournalsOptimizer {
     //region private
-    private final PoolDestinationData poolDestinationData = new PoolDestinationData();
-    //-------------------------------------------------------------------------
-    private final String sourceDirPath;
-    private final String targetDirPath;
-    //-------------------------------------------------------------------------
-    private Journal sourceJournal;
-    private Journal targetJournal;
-    //-------------------------------------------------------------------------
-    private void createJournals() {
-        System.out.println("INITIALIZE");
+    private class Journals {
+        //region private
+        private final Journal sourceJournal;
+        private final Journal targetJournal;
+        //endregion
+        Journals(File sourceDir, File targetDir, int journalSize) {
+            this(createJournal(sourceDir, journalSize), createJournal(targetDir, journalSize));
+        }
+        Journals(Journal sourceJournal, Journal targetJournal) {
+            this.sourceJournal = sourceJournal;
+            this.targetJournal = targetJournal;
+        }
 
-        File sourceDir = new File(sourceDirPath);
-        File targetDir = new File(targetDirPath);
+        //---------------------------------------------------------------------
+        Journal getSourceJournal() {
+            return sourceJournal;
+        }
+        Journal getTargetJournal() {
+            return targetJournal;
+        }
+        //---------------------------------------------------------------------
+    }
+    //-------------------------------------------------------------------------
+    private void optimaze(File sourceDir, File targetDir, boolean useAnyKeyToContinue) throws IOException {
+        showSeparator(2);
 
+        Journals journals = createJournals(sourceDir, targetDir);
+        Journal sourceJournal = journals.getSourceJournal();
+
+        PoolDestinationData sourcePoolDestinationData = journalsAnalysis(sourceJournal);
+
+        if(!sourcePoolDestinationData.isEmpty()) {
+            showSeparator();
+            dataOptimization(sourceJournal, sourcePoolDestinationData, journals.getTargetJournal());
+        }
+        //---------------------------------------------------------------------
+        for (File sourceSubDir : sourceDir.listFiles()) {
+            if(sourceSubDir.isDirectory()) {
+                if(useAnyKeyToContinue) {
+                    showSeparator();
+                    pressAnyKeyToContinue();
+                }
+                String targetSubDirPath = targetDir.getPath() + File.separator +  sourceSubDir.getName();
+                optimaze(sourceSubDir, new File(targetSubDirPath), useAnyKeyToContinue);
+            }
+        }
+        //---------------------------------------------------------------------
+    }
+    //-------------------------------------------------------------------------
+    private Journals createJournals(File sourceDir, File targetDir) {
         deleteDir(targetDir);
         targetDir.mkdirs();
 
         int journalSize = getJournalSize(sourceDir);
-        System.out.printf("- Journal size: %s.\r\n", bytesToString(journalSize));
-
-        sourceJournal = createJournal(sourceDir, journalSize);
-        targetJournal = createJournal(targetDir, journalSize);
+        return new Journals(sourceDir, targetDir, journalSize);
     }
     //-------------------------------------------------------------------------
-    private void analysis() throws IOException {
+    private PoolDestinationData journalsAnalysis(Journal sourceJournal) {
+        final PoolDestinationData poolDestinationData = new PoolDestinationData();
+
         System.out.println("START JOURNALS ANALYSIS");
-        System.out.printf("- Directory: '%s'.\r\n", sourceJournal.getDirectory().getCanonicalPath());
+        System.out.printf("- Directory: '%s'.\r\n", sourceJournal.getDirectory().getPath());
+        System.out.printf("- Journal size: %s.\r\n", bytesToString(sourceJournal.getMaxFileLength()));
+        System.out.println();
 
         try {
             long start = System.currentTimeMillis();
@@ -68,9 +105,11 @@ public class KahaDBJournalsOptimizer {
                 sourceJournal.close();
             } catch (IOException e) {  }
         }
-    }
 
-    private void dataOptimization() {
+        return poolDestinationData;
+    }
+    //-------------------------------------------------------------------------
+    private void dataOptimization(Journal sourceJournal, PoolDestinationData sourcePoolDestinationData, Journal targetJournal) {
         System.out.println("START JOURNALS DATA OPTIMIZATION");
 
         try {
@@ -78,9 +117,9 @@ public class KahaDBJournalsOptimizer {
 
             targetJournal.start();
 
-            topicsSubscriptionsMove();
-            topicsMessagesMove();
-            queuesMessagesMove();
+            topicsSubscriptionsMove(sourceJournal, sourcePoolDestinationData, targetJournal);
+            topicsMessagesMove(sourceJournal, sourcePoolDestinationData, targetJournal);
+            queuesMessagesMove(sourceJournal, sourcePoolDestinationData, targetJournal);
 
             long end = System.currentTimeMillis();
             System.out.println();
@@ -96,11 +135,11 @@ public class KahaDBJournalsOptimizer {
             } catch (IOException e) {  }
         }
     }
-    private void topicsSubscriptionsMove() {
+    private void topicsSubscriptionsMove(Journal sourceJournal, PoolDestinationData sourcePoolDestinationData, Journal targetJournal) {
         try {
             long start = System.currentTimeMillis();
 
-            SubscriptionLocation[] topicsSubscriptionLocations = poolDestinationData.getTopicsSubscriptionLocations();
+            SubscriptionLocation[] topicsSubscriptionLocations = sourcePoolDestinationData.getTopicsSubscriptionLocations();
             sourceJournal.start();
 
             for (SubscriptionLocation subscriptionLocation : topicsSubscriptionLocations) {
@@ -120,11 +159,11 @@ public class KahaDBJournalsOptimizer {
             } catch (IOException e) { }
         }
     }
-    private void topicsMessagesMove() {
+    private void topicsMessagesMove(Journal sourceJournal, PoolDestinationData sourcePoolDestinationData, Journal targetJournal) {
         try {
             long start = System.currentTimeMillis();
 
-            MessageLocation[] topicsMessageLocations = poolDestinationData.getTopicsMessageLocations();
+            MessageLocation[] topicsMessageLocations = sourcePoolDestinationData.getTopicsMessageLocations();
             sourceJournal.start();
 
             int messagesCounter = topicsMessageLocations.length;
@@ -153,11 +192,11 @@ public class KahaDBJournalsOptimizer {
             } catch (IOException e) {  }
         }
     }
-    private void queuesMessagesMove() {
+    private void queuesMessagesMove(Journal sourceJournal, PoolDestinationData sourcePoolDestinationData, Journal targetJournal) {
         try {
             long start = System.currentTimeMillis();
 
-            MessageLocation[] queuesMessageLocations = poolDestinationData.getQueuesMessageLocations();
+            MessageLocation[] queuesMessageLocations = sourcePoolDestinationData.getQueuesMessageLocations();
             sourceJournal.start();
 
             int messagesCounter = queuesMessageLocations.length;
@@ -178,12 +217,9 @@ public class KahaDBJournalsOptimizer {
             } catch (IOException e) {  }
         }
     }
-
-    private void renameDirs() {
+    //-------------------------------------------------------------------------
+    private void renameDirs(File sourceDir, File targetDir) {
         System.out.println("RENAME JOURNALS DIRECTORIES");
-
-        File sourceDir = sourceJournal.getDirectory();
-        File targetDir = targetJournal.getDirectory();
 
         try {
             String sourceDirPath = sourceDir.getCanonicalPath();
@@ -203,7 +239,8 @@ public class KahaDBJournalsOptimizer {
         }
     }
     //endregion
-    public KahaDBJournalsOptimizer(String sourceDirPath) {
+    //-------------------------------------------------------------------------
+    public void optimaze(String sourceDirPath, boolean useAnyKeyToContinue) throws IOException {
         if(isNullOrEmpty(sourceDirPath)) {
             throw new NullPointerException("sourceDirPath");
         }
@@ -213,25 +250,17 @@ public class KahaDBJournalsOptimizer {
             throw new IllegalArgumentException("sourceDirPath");
         }
 
-        this.sourceDirPath = sourceDirPath;
-        this.targetDirPath = sourceDirPath + "_temp";
-    }
+        try {
+            File targetDir = new File(sourceDirPath + "_temp");
+            optimaze(sourceDir, targetDir, useAnyKeyToContinue);
 
-    //-------------------------------------------------------------------------
-    public void optimaze() throws IOException {
-        showSeparator();
-        createJournals();
-
-        showSeparator();
-        analysis();
-
-        showSeparator();
-        dataOptimization();
-
-        showSeparator();
-        renameDirs();
-
-        showSeparator();
+            showSeparator(2);
+            renameDirs(sourceDir, targetDir);
+            showSeparator(2);
+        }
+        catch (Throwable throwable) {
+            showException(throwable);
+        }
     }
     //-------------------------------------------------------------------------
 }

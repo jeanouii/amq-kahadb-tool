@@ -1,7 +1,5 @@
 package activemq.kahadb.optimizer;
 
-import static activemq.kahadb.utils.KahaDBUtils.pressAnyKeyToExit;
-
 public class Run {
     public static void main(String[] args) throws Exception {
         if(args.length <= 0) {
@@ -9,10 +7,11 @@ public class Run {
             System.exit(1);
         }
         //---------------------------------------------------------------------
-        KahaDBJournalsOptimizer kahaDBJournalsOptimizer = new KahaDBJournalsOptimizer(args[0]);
-        kahaDBJournalsOptimizer.optimaze();
+        String sourceDirPath = args[0];
+        boolean useAnyKeyToContinue = false;
         //---------------------------------------------------------------------
-        //pressAnyKeyToExit();
+        KahaDBJournalsOptimizer kahaDBJournalsOptimizer = new KahaDBJournalsOptimizer();
+        kahaDBJournalsOptimizer.optimaze(sourceDirPath, useAnyKeyToContinue);
         //---------------------------------------------------------------------
     }
 }

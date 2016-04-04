@@ -115,8 +115,18 @@ public class KahaDBUtils {
         throwable.printStackTrace();
         System.exit(1);
     }
+    //-------------------------------------------------------------------------
     public static void showSeparator() {
         showSeparator(true);
+    }
+    public static void showSeparator(int count) {
+        if(count < 0) {
+            throw new IndexOutOfBoundsException("count");
+        }
+
+        for(int i = 0; i < count; ++i) {
+            showSeparator(true);
+        }
     }
     public static void showSeparator(boolean newLine) {
         if(newLine) {

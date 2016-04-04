@@ -16,6 +16,7 @@ import org.apache.activemq.wireformat.WireFormat;
 import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.nio.file.NotDirectoryException;
 import java.util.Map;
 import java.util.Set;
 
@@ -24,31 +25,38 @@ import static activemq.kahadb.utils.KahaDBUtils.showException;
 
 public class KahaDBJournalsReader {
     //region private
-    private final String sourceDirPath;
+    private final boolean showFileMapCommand;
     //-------------------------------------------------------------------------
-    private Journal sourceJournal;
-    private boolean useContinue;
-    private boolean showFileMapCommand;
-    //-------------------------------------------------------------------------
-    private void createJournals() {
-        sourceJournal = createJournal(new File(sourceDirPath));
+    private void showData(File sourceDir, boolean useAnyKeyToContinue) throws IOException {
+        showJournalData(createJournal(sourceDir), useAnyKeyToContinue);
+        //---------------------------------------------------------------------
+        for (File sourceSubDir : sourceDir.listFiles()) {
+            if(sourceSubDir.isDirectory()) {
+                if(useAnyKeyToContinue) {
+                    showSeparator();
+                    pressAnyKeyToContinue();
+                }
+                showData(sourceSubDir, useAnyKeyToContinue);
+            }
+        }
+        //---------------------------------------------------------------------
     }
     //-------------------------------------------------------------------------
-    private void showJournalsData() {
+    private void showJournalData(Journal journal, boolean useAnyKeyToContinue) {
         try {
-            sourceJournal.start();
+            showSeparator();
+
+            journal.start();
 
             int fileIndex = 0;
             int dataIndex = 0;
             File lastFile = null;
 
-            Location location = sourceJournal.getNextLocation(null);
+            Location location = journal.getNextLocation(null);
             while (location != null) {
-                File nextFile = sourceJournal.getFile(location.getDataFileId());
+                File nextFile = journal.getFile(location.getDataFileId());
                 if(lastFile == null || !lastFile.equals(nextFile)) {
-                    showSeparator();
-
-                    if(useContinue && lastFile != null) {
+                    if(useAnyKeyToContinue && lastFile != null) {
                         pressAnyKeyToContinue();
                         showSeparator();
                     }
@@ -64,10 +72,10 @@ public class KahaDBJournalsReader {
                     ++dataIndex;
                 }
 
-                ByteSequence sequence = sourceJournal.read(location);
-                showJournalData(dataIndex, sequence);
+                ByteSequence sequence = journal.read(location);
+                showJournalData(sequence, dataIndex);
 
-                location = sourceJournal.getNextLocation(location);
+                location = journal.getNextLocation(location);
             }
 
             if(lastFile != null) {
@@ -79,12 +87,12 @@ public class KahaDBJournalsReader {
         }
         finally {
             try {
-                sourceJournal.close();
+                journal.close();
             }
             catch (IOException e) {}
         }
     }
-    private void showJournalData(int dataIndex, ByteSequence sequence) throws IOException {
+    private void showJournalData(ByteSequence sequence, int dataIndex) throws IOException {
         DataByteArrayInputStream sequenceDataStream = new DataByteArrayInputStream(sequence);
         KahaEntryType commandType = KahaEntryType.valueOf(sequenceDataStream.readByte());
 
@@ -93,7 +101,7 @@ public class KahaDBJournalsReader {
         //---------------------------------------------------------------------
         if(showCommandAvailable(commandType)) {
             String info = getCommandInfo(commandType, command);
-            String commandTypeStr = reversCommand(commandType, command) ? "-" + commandType.toString() : commandType.toString();
+            String commandTypeStr = isReversCommand(commandType, command) ? "-" + commandType.toString() : commandType.toString();
             if (info == null || info.isEmpty()) {
                 System.out.printf("%s CommandType: %s.\r\n", dataIndex, commandTypeStr);
             } else {
@@ -101,14 +109,14 @@ public class KahaDBJournalsReader {
             }
         }
     }
-
+    //-------------------------------------------------------------------------
     private boolean showCommandAvailable(KahaEntryType commandType) {
         if(commandType == KahaEntryType.KAHA_ACK_MESSAGE_FILE_MAP_COMMAND) {
             return showFileMapCommand;
         }
         return true;
     }
-    private boolean reversCommand(KahaEntryType commandType, JournalCommand<?> command) {
+    private boolean isReversCommand(KahaEntryType commandType, JournalCommand<?> command) {
         if(commandType == KahaEntryType.KAHA_SUBSCRIPTION_COMMAND) {
             KahaSubscriptionCommand subscriptionCommand = (KahaSubscriptionCommand)command;
             return !subscriptionCommand.hasSubscriptionInfo();
@@ -206,21 +214,27 @@ public class KahaDBJournalsReader {
         return command.getMessage();
     }
     //endregion
-    public KahaDBJournalsReader(String sourceDirPath) {
+    public KahaDBJournalsReader(boolean showFileMapCommand) {
+        this.showFileMapCommand = showFileMapCommand;
+    }
+
+    //-------------------------------------------------------------------------
+    public void showData(String sourceDirPath, boolean useAnyKeyToContinue) throws NotDirectoryException {
         if(isNullOrEmpty(sourceDirPath)) {
             throw new NullPointerException("sourceDirPath");
         }
 
-        this.sourceDirPath = sourceDirPath;
-    }
+        File sourceDir = new File(sourceDirPath);
+        if(!sourceDir.isDirectory()) {
+            throw new NotDirectoryException("sourceDirPath");
+        }
 
-    //-------------------------------------------------------------------------
-    public void showData(boolean useContinue, boolean showFileMapCommand) {
-        this.useContinue = useContinue;
-        this.showFileMapCommand = showFileMapCommand;
-
-        createJournals();
-        showJournalsData();
+        try {
+            showData(sourceDir, useAnyKeyToContinue);
+        }
+        catch (Throwable throwable) {
+            showException(throwable);
+        }
     }
     //-------------------------------------------------------------------------
 }

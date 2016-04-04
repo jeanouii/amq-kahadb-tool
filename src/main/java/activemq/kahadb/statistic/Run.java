@@ -1,7 +1,5 @@
 package activemq.kahadb.statistic;
 
-import static activemq.kahadb.utils.KahaDBUtils.pressAnyKeyToExit;
-
 public class Run {
     public static void main(String[] args) throws Exception {
         if (args.length <= 0) {
@@ -9,10 +7,11 @@ public class Run {
             System.exit(1);
         }
         //---------------------------------------------------------------------
-        KahaDBJournalsStatistics statistics = new KahaDBJournalsStatistics(args[0]);
-        statistics.showStatistic(false);
+        String sourceDirPath = args[0];
+        boolean useAnyKeyToContinue = false;
         //---------------------------------------------------------------------
-        //pressAnyKeyToExit();
+        KahaDBJournalsStatistics statistics = new KahaDBJournalsStatistics();
+        statistics.showStatistic(sourceDirPath, useAnyKeyToContinue);
         //---------------------------------------------------------------------
     }
 }

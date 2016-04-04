@@ -10,39 +10,45 @@ import org.apache.activemq.util.ByteSequence;
 import javax.management.OperationsException;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.NotDirectoryException;
 
 import static activemq.kahadb.utils.KahaDBUtils.*;
 
 public class KahaDBJournalsStatistics {
     //region private
-    private final String sourceDirPath;
-    //-------------------------------------------------------------------------
-    private Journal sourceJournal;
-    private boolean useContinue;
-    //-------------------------------------------------------------------------
-    private void createJournals() {
-        sourceJournal = createJournal(new File(sourceDirPath));
+    private void showStatistic(File sourceDir, boolean useAnyKeyToContinue) throws IOException {
+        showJournalStatistic(createJournal(sourceDir), useAnyKeyToContinue);
+        //---------------------------------------------------------------------
+        for (File sourceSubDir : sourceDir.listFiles()) {
+            if(sourceSubDir.isDirectory()) {
+                if(useAnyKeyToContinue) {
+                    showSeparator();
+                    pressAnyKeyToContinue();
+                }
+                showStatistic(sourceSubDir, useAnyKeyToContinue);
+            }
+        }
+        //---------------------------------------------------------------------
     }
     //-------------------------------------------------------------------------
-    private void showJournalsStatistic() {
+    private void showJournalStatistic(Journal journal, boolean useAnyKeyToContinue) {
         try {
-            sourceJournal.start();
+            showSeparator(2);
+
+            journal.start();
 
             int fileIndex = 0;
             JournalStatistic lastJournalStatistic = null;
             long headerSize = -1;
-            Location location = sourceJournal.getNextLocation(null);
+            Location location = journal.getNextLocation(null);
             while (location != null) {
-                File nextFile = sourceJournal.getFile(location.getDataFileId());
+                File nextFile = journal.getFile(location.getDataFileId());
                 if(lastJournalStatistic == null || !lastJournalStatistic.getFile().equals(nextFile)) {
                     if(lastJournalStatistic != null) {
-                        showJournalStatistic(fileIndex, lastJournalStatistic);
-                    }
-                    else {
-                        showSeparator();
+                        showJournalStatistic(lastJournalStatistic, fileIndex);
                     }
 
-                    if(useContinue && lastJournalStatistic != null) {
+                    if(useAnyKeyToContinue && lastJournalStatistic != null) {
                         pressAnyKeyToContinue();
                         showSeparator();
                     }
@@ -53,14 +59,14 @@ public class KahaDBJournalsStatistics {
                 if(headerSize == -1) {
                     headerSize = location.getOffset();
                 }
-                ByteSequence sequence = sourceJournal.read(location);
+                ByteSequence sequence = journal.read(location);
                 lastJournalStatistic.addSequence(sequence, location.getSize() + headerSize);
 
-                location = sourceJournal.getNextLocation(location);
+                location = journal.getNextLocation(location);
             }
 
             if(lastJournalStatistic != null) {
-                showJournalStatistic(fileIndex, lastJournalStatistic);
+                showJournalStatistic(lastJournalStatistic, fileIndex);
             }
         }
         catch (Throwable throwable) {
@@ -68,28 +74,29 @@ public class KahaDBJournalsStatistics {
         }
         finally {
             try {
-                sourceJournal.close();
+                journal.close();
             }
             catch (IOException e) {}
         }
     }
-    private void showJournalStatistic(int fileIndex, JournalStatistic journalStatistic) throws OperationsException {
+    private void showJournalStatistic(JournalStatistic journalStatistic, int fileIndex) throws OperationsException {
         System.out.printf("(%s) Journal: '%s'.\r\n", fileIndex, journalStatistic.getFile());
 
         if(journalStatistic.hasStatistic()) {
             showJournalDestinationStatistics(journalStatistic);
             showJournalCommandStatistics(journalStatistic);
+
+
         }
 
-        showSeparator();
+        showSeparator(2);
     }
 
     private void showJournalDestinationStatistics(JournalStatistic journalStatistic) throws OperationsException {
         showSeparator();
-        System.out.printf("Destinations statistics:\r\n");
+        System.out.printf("Destination statistics:\r\n");
         System.out.printf("- Topics: %s.\r\n", journalStatistic.getTopicCount());
         System.out.printf("- Queues: %s.\r\n", journalStatistic.getQueueCount());
-        showSeparator(false);
 
         showCommandStatistics(journalStatistic.getTopicsDestinationStatistics());
         showCommandStatistics(journalStatistic.getQueueDestinationStatistics());
@@ -97,7 +104,7 @@ public class KahaDBJournalsStatistics {
         DestinationStatistic[] otherDestinationStatistics = journalStatistic.getOtherDestinationStatistics();
         if(otherDestinationStatistics.length != 0) {
             System.out.println();
-            System.out.printf("Other commands:\r\n");
+            System.out.printf("Commands without destination:\r\n");
             showCommandStatistics(otherDestinationStatistics);
         }
     }
@@ -105,14 +112,14 @@ public class KahaDBJournalsStatistics {
         CommandStatistic[] commandStatistics = journalStatistic.getCommandStatistics();
 
         showSeparator();
-        System.out.printf("Commands statistics:\r\n");
-        showSeparator(true);
+        System.out.printf("Command statistics:\r\n");
 
         showTopicsCommandStatistics(journalStatistic);
-        showQueuesCommandStatistics(journalStatistic);
+        showQueuesCommandStatistic(journalStatistic);
         showOtherCommandStatistics(journalStatistic);
         System.out.println();
 
+        System.out.printf("Commands:\r\n");
         showCommandStatistics(commandStatistics);
     }
 
@@ -162,7 +169,7 @@ public class KahaDBJournalsStatistics {
                 journalStatistic.getTopicsUnsubscriptionsCount()
         );
     }
-    private void showQueuesCommandStatistics(JournalStatistic journalStatistic) {
+    private void showQueuesCommandStatistic(JournalStatistic journalStatistic) {
         System.out.printf("- Queues: %s (messages: %s).\r\n",
                 journalStatistic.getQueueCount(),
                 journalStatistic.getQueuesMessagesCount()
@@ -174,20 +181,24 @@ public class KahaDBJournalsStatistics {
         );
     }
     //endregion
-    public KahaDBJournalsStatistics(String sourceDirPath) {
+    //-------------------------------------------------------------------------
+    public void showStatistic(String sourceDirPath, boolean useAnyKeyToContinue) throws NotDirectoryException {
         if(isNullOrEmpty(sourceDirPath)) {
             throw new NullPointerException("sourceDirPath");
         }
 
-        this.sourceDirPath = sourceDirPath;
-    }
+        File sourceDir = new File(sourceDirPath);
+        if(!sourceDir.isDirectory()) {
+            throw new NotDirectoryException("sourceDirPath");
+        }
 
-    //-------------------------------------------------------------------------
-    public void showStatistic(boolean useContinue) {
-        this.useContinue = useContinue;
-
-        createJournals();
-        showJournalsStatistic();
+        try {
+            showStatistic(sourceDir, useAnyKeyToContinue);
+            showSeparator(2);
+        }
+        catch (Throwable throwable) {
+            showException(throwable);
+        }
     }
     //-------------------------------------------------------------------------
 }
