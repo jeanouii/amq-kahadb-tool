@@ -4,7 +4,7 @@
 
 This tool allows reduce number journal files by moving durable subscriptions, pending messages and acks.
 
-### Problems
+### The Problems
 
 [Why do KahaDB log files remain after cleanup?](http://activemq.apache.org/why-do-kahadb-log-files-remain-after-cleanup.html)
 
@@ -19,15 +19,15 @@ A data file may be in-use because:
 4. It is a journal file, and there may be a pending write to it.
 ```
 
-### Decision
+### The Decisions
 
 ```sh
-- 1 and 2 problems: Necessary moving durable subscriptions, pending messages and acks in one or more files.
-- 3 problem: WARNING! Neglect transactions.
-- 4 problem: Stop ActiveMQ.
+- The 1 and 2 problems: Necessary moving durable subscriptions, pending messages and acks in one or more files.
+- The 3 problem: WARNING! Ignoring transactions.
+- The 4 problem: Stop ActiveMQ.
 ```
 
-### Use
+### How to use
 
 ```sh
 1. Stop ActiveMQ.
@@ -63,7 +63,7 @@ JOURNALS DATA OPTIMIZATION
 
 This tool displays commands of journal files.
 
-### Use
+### How to use
 
 ```sh
 - Execute: java -jar .\out\artifacts\KahaDBJournalsReader.jar "<journals directory>" 
@@ -74,7 +74,7 @@ This tool displays commands of journal files.
 
 This tool displays statistics journal files. Number of topics, queues and commands in the journal file.
 
-### Use
+### How to use
 ```sh
 - Execute: java -jar .\out\artifacts\KahaDBJournalsStatistics.jar "<journals directory>" 
   (example: java -jar .\out\artifacts\KahaDBJournalsStatistics.jar "D:\Projects\apache-activemq-5.13.2\data\kahadb")
