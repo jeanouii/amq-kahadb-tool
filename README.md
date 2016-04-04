@@ -2,7 +2,7 @@
 
 ## KahaDBJournalsOptimizer
 
-It tool allows reduce the number journals files by moving the durable subscription, pending messages and acks.
+This tool allows reduce number journal files by moving durable subscriptions, pending messages and acks.
 
 ### Problems
 
@@ -13,7 +13,8 @@ Clean-up of unreferenced KahaDB journal log files data-<id>.log will occur every
 A data file may be in-use because:
 ```sh
 1. It contains a pending message for a destination or durable topic subscription.
-2. It contains an ack for a message which is in an in-use data file - the ack cannot be removed as a recovery would then mark the message for redelivery.
+2. It contains an ack for a message which is in an in-use data file - the ack cannot be removed 
+   as a recovery would then mark the message for redelivery.
 3. The journal references a pending transaction.
 4. It is a journal file, and there may be a pending write to it.
 ```
@@ -21,8 +22,8 @@ A data file may be in-use because:
 ### Decision
 
 ```sh
-- 1 and 2 problems: To reduce the number journals files is necessary moving the durable subscription, pending messages and acks in one or more files.
-- 3 problem: WARNING! Transactions neglected.
+- 1 and 2 problems: Necessary moving durable subscriptions, pending messages and acks in one or more files.
+- 3 problem: WARNING! Neglect transactions.
 - 4 problem: Stop ActiveMQ.
 ```
 
@@ -30,8 +31,9 @@ A data file may be in-use because:
 
 ```sh
 1. Stop ActiveMQ.
-2. Run: java -jar .\out\artifacts\KahaDBJournalsOptimizer.jar "<journals directory>" (example: java -jar .\out\artifacts\KahaDBJournalsOptimizer.jar "D:\Projects\apache-activemq-5.13.2\data\kahadb")
-3. Run ActiveMQ.
+2. Execute: java -jar .\out\artifacts\KahaDBJournalsOptimizer.jar "<journals directory>" 
+   (example: java -jar .\out\artifacts\KahaDBJournalsOptimizer.jar "D:\Projects\apache-activemq-5.13.2\data\kahadb")
+3. Start ActiveMQ.
 ```
 
 ### Look
@@ -59,20 +61,21 @@ JOURNALS DATA OPTIMIZATION
 
 ## KahaDBJournalsReader
 
-It tool displays the commands in journals files.
-
+This tool displays commands of journal files.
 
 ### Use
 
 ```sh
-- Run: java -jar .\out\artifacts\KahaDBJournalsReader.jar "<journals directory>" (example: java -jar .\out\artifacts\KahaDBJournalsReader.jar "D:\Projects\apache-activemq-5.13.2\data\kahadb")
+- Execute: java -jar .\out\artifacts\KahaDBJournalsReader.jar "<journals directory>" 
+  (example: java -jar .\out\artifacts\KahaDBJournalsReader.jar "D:\Projects\apache-activemq-5.13.2\data\kahadb")
 ```
 
 ## KahaDBJournalsStatistics
 
-It tool displays the statistics journals files. Number of topics and queues in the file. The number of the commands and size in each topic and queue. The total size of all the commands in the file, etc.
+This tool displays statistics journal files. Number of topics, queues and commands in the journal file.
 
 ### Use
 ```sh
-- Run: java -jar .\out\artifacts\KahaDBJournalsStatistics.jar "<journals directory>" (example: java -jar .\out\artifacts\KahaDBJournalsStatistics.jar "D:\Projects\apache-activemq-5.13.2\data\kahadb")
+- Execute: java -jar .\out\artifacts\KahaDBJournalsStatistics.jar "<journals directory>" 
+  (example: java -jar .\out\artifacts\KahaDBJournalsStatistics.jar "D:\Projects\apache-activemq-5.13.2\data\kahadb")
 ```
