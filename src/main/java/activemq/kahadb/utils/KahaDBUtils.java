@@ -4,17 +4,12 @@ import org.apache.activemq.store.kahadb.data.KahaDestination;
 import org.apache.activemq.store.kahadb.disk.journal.Journal;
 import org.apache.activemq.store.kahadb.disk.journal.Location;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 
-public class KahaDBUtils {
-    //region private
-    private static final String Separator = "--------------------------------------------------------------------------------";
-    //endregion
+public final class KahaDBUtils {
     //-------------------------------------------------------------------------
     public static Journal createJournal(File directory) {
         int journalSize = getJournalSize(directory);
@@ -56,16 +51,6 @@ public class KahaDBUtils {
         return journalSize;
     }
     //-------------------------------------------------------------------------
-    public static void deleteDir(File file) {
-        File[] contents = file.listFiles();
-        if (contents != null) {
-            for (File f : contents) {
-                deleteDir(f);
-            }
-        }
-        file.delete();
-    }
-    //-------------------------------------------------------------------------
     public static String bytesToString(long sizeInBytes) {
         final double SPACE_KB = 1024;
         final double SPACE_MB = 1024 * SPACE_KB;
@@ -91,10 +76,6 @@ public class KahaDBUtils {
         }
     }
     //-------------------------------------------------------------------------
-    public static boolean isNullOrEmpty(String str) {
-        return str == null || str.isEmpty();
-    }
-    //-------------------------------------------------------------------------
     public static String getDestinationInfo(KahaDestination destination) {
         return getDestinationInfo(destination.getType(), getDestinationId(destination));
     }
@@ -108,45 +89,6 @@ public class KahaDBUtils {
     //-------------------------------------------------------------------------
     public static boolean isDestinationTopic(KahaDestination destination) {
         return destination.getType() == KahaDestination.DestinationType.TOPIC;
-    }
-    //-------------------------------------------------------------------------
-    public static void showException(Throwable throwable) {
-        System.out.println("Caught: " + throwable);
-        throwable.printStackTrace();
-        System.exit(1);
-    }
-    //-------------------------------------------------------------------------
-    public static void showSeparator() {
-        showSeparator(true);
-    }
-    public static void showSeparator(int count) {
-        if(count < 0) {
-            throw new IndexOutOfBoundsException("count");
-        }
-
-        for(int i = 0; i < count; ++i) {
-            showSeparator(true);
-        }
-    }
-    public static void showSeparator(boolean newLine) {
-        if(newLine) {
-            System.out.println(Separator);
-        }
-        else {
-            System.out.printf(Separator);
-        }
-    }
-    //-------------------------------------------------------------------------
-    public static void pressAnyKeyToExit() throws IOException {
-        System.out.printf("Press any key to end.");
-        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        br.readLine();
-        System.exit(0);
-    }
-    public static void pressAnyKeyToContinue() throws IOException {
-        System.out.printf("Press any key to continues.");
-        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        br.readLine();
     }
     //-------------------------------------------------------------------------
 }

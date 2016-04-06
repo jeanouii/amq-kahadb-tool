@@ -2,7 +2,7 @@ package activemq.kahadb.statistic.statistics;
 
 import org.apache.activemq.store.kahadb.data.KahaEntryType;
 
-public class CommandStatistic {
+public final class CommandStatistic {
     //region private
     private final KahaEntryType commandType;
     private final boolean reversCommand;

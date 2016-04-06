@@ -6,9 +6,9 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Set;
 
-import static activemq.kahadb.utils.KahaDBUtils.isNullOrEmpty;
+import static activemq.Utils.isNullOrEmpty;
 
-public class MessageLocation {
+public final class MessageLocation {
     //region private
     private final String messageId;
     private final String destinationId;

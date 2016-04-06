@@ -2,9 +2,9 @@ package activemq.kahadb.optimizer.locations;
 
 import org.apache.activemq.store.kahadb.disk.journal.Location;
 
-import static activemq.kahadb.utils.KahaDBUtils.isNullOrEmpty;
+import static activemq.Utils.isNullOrEmpty;
 
-public class SubscriptionLocation {
+public final class SubscriptionLocation {
     //region private
     private final String subscriptionKey;
     private final String destinationId;

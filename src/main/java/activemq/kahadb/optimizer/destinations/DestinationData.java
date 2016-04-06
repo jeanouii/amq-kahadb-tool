@@ -7,9 +7,9 @@ import org.apache.activemq.store.kahadb.disk.journal.Location;
 import java.util.Iterator;
 import java.util.LinkedList;
 
-import static activemq.kahadb.utils.KahaDBUtils.isNullOrEmpty;
+import static activemq.Utils.isNullOrEmpty;
 
-public class DestinationData {
+public final class DestinationData {
     //region private
     private final String destinationId;
     private final LinkedList<SubscriptionLocation> subscriptionLocations = new LinkedList<>();
@@ -91,7 +91,8 @@ public class DestinationData {
                     for (MessageLocation messageLocation : messageLocations) {
                         messageLocation.addPendingSubscriptionKey(subscriptionKey);
                     }
-                } else {
+                }
+                else {
                     MessageLocation lastMessageLocation = messageLocations.getLast();
                     if (lastMessageLocation != null) {
                         lastMessageLocation.addPendingSubscriptionKey(subscriptionKey);

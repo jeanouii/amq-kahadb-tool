@@ -1,5 +1,6 @@
 package activemq.kahadb.reader;
 
+import activemq.kahadb.utils.KahaDBTransactionIdConversion;
 import org.apache.activemq.ActiveMQMessageAuditNoSync;
 import org.apache.activemq.command.SubscriptionInfo;
 import org.apache.activemq.openwire.OpenWireFormat;
@@ -12,7 +13,6 @@ import org.apache.activemq.store.kahadb.disk.util.DataByteArrayInputStream;
 import org.apache.activemq.util.ByteSequence;
 import org.apache.activemq.wireformat.WireFormat;
 
-
 import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -20,10 +20,11 @@ import java.nio.file.NotDirectoryException;
 import java.util.Map;
 import java.util.Set;
 
-import static activemq.kahadb.utils.KahaDBUtils.*;
-import static activemq.kahadb.utils.KahaDBUtils.showException;
+import static activemq.Utils.*;
+import static activemq.kahadb.utils.KahaDBUtils.createJournal;
+import static activemq.kahadb.utils.KahaDBUtils.getDestinationInfo;
 
-public class KahaDBJournalsReader {
+public final class KahaDBJournalsReader {
     //region private
     private final boolean showFileMapCommand;
     //-------------------------------------------------------------------------
@@ -108,7 +109,8 @@ public class KahaDBJournalsReader {
             String commandTypeStr = isReversCommand(commandType, command) ? "-" + commandType.toString() : commandType.toString();
             if (info == null || info.isEmpty()) {
                 System.out.printf("%s CommandType: %s.\r\n", dataIndex, commandTypeStr);
-            } else {
+            }
+            else {
                 System.out.printf("%s CommandType: %s - %s.\r\n", dataIndex, commandTypeStr, info);
             }
         }
@@ -154,6 +156,15 @@ public class KahaDBJournalsReader {
             case KAHA_TRACE_COMMAND: {
                 return getCommandInfo((KahaTraceCommand)command);
             }
+            case KAHA_COMMIT_COMMAND: {
+                return getCommandInfo((KahaCommitCommand)command);
+            }
+            case KAHA_PREPARE_COMMAND: {
+                return getCommandInfo((KahaPrepareCommand)command);
+            }
+            case KAHA_ROLLBACK_COMMAND: {
+                return getCommandInfo((KahaRollbackCommand)command);
+            }
             default: {
                 return "";
             }
@@ -161,13 +172,24 @@ public class KahaDBJournalsReader {
     }
 
     private String getCommandInfo(KahaAddMessageCommand command) {
-        return getDestinationInfo(command.getDestination()) + ", MsgId: " + command.getMessageId();
+        String info = getDestinationInfo(command.getDestination()) + ", MsgId: " + command.getMessageId();
+        if(command.hasTransactionInfo()) {
+            info += ", TransId: " + KahaDBTransactionIdConversion.convert(command.getTransactionInfo());
+        }
+        return info;
     }
     private String getCommandInfo(KahaUpdateMessageCommand command) {
         return getCommandInfo(command.getMessage());
     }
     private String getCommandInfo(KahaRemoveMessageCommand command) {
-        return getDestinationInfo(command.getDestination()) + ", MsgId: " + command.getMessageId() + ", SubKey: " + command.getSubscriptionKey();
+        String info =  getDestinationInfo(command.getDestination()) + ", MsgId: " + command.getMessageId();
+        if(command.hasTransactionInfo()) {
+            info += ", TransId: " + KahaDBTransactionIdConversion.convert(command.getTransactionInfo());
+        }
+        if(command.hasSubscriptionKey()) {
+           info += ", SubKey: " + command.getSubscriptionKey();
+        }
+        return info;
     }
     private String getCommandInfo(KahaRemoveDestinationCommand command) {
         return getDestinationInfo(command.getDestination());
@@ -216,6 +238,24 @@ public class KahaDBJournalsReader {
     }
     private String getCommandInfo(KahaTraceCommand command) {
         return command.getMessage();
+    }
+    private String getCommandInfo(KahaCommitCommand command) {
+        if(command.hasTransactionInfo()) {
+            return "TransId: " + KahaDBTransactionIdConversion.convert(command.getTransactionInfo());
+        }
+        return "";
+    }
+    private String getCommandInfo(KahaPrepareCommand command) {
+        if(command.hasTransactionInfo()) {
+            return "TransId: " + KahaDBTransactionIdConversion.convert(command.getTransactionInfo());
+        }
+        return "";
+    }
+    private String getCommandInfo(KahaRollbackCommand command) {
+        if(command.hasTransactionInfo()) {
+            return "TransId: " + KahaDBTransactionIdConversion.convert(command.getTransactionInfo());
+        }
+        return "";
     }
     //endregion
     public KahaDBJournalsReader(boolean showFileMapCommand) {

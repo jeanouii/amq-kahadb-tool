@@ -1,11 +1,10 @@
 package activemq.kahadb.optimizer.locations;
 
-
 import org.apache.activemq.store.kahadb.disk.journal.Location;
 
-import static activemq.kahadb.utils.KahaDBUtils.isNullOrEmpty;
+import static activemq.Utils.isNullOrEmpty;
 
-public class AckMessageLocation {
+public final class AckMessageLocation {
     //region private
     private final String subscriptionKey;
     private final Location location;

@@ -10,11 +10,11 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.LinkedList;
 
+import static activemq.Utils.showException;
 import static activemq.kahadb.utils.KahaDBUtils.getDestinationId;
 import static activemq.kahadb.utils.KahaDBUtils.isDestinationTopic;
-import static activemq.kahadb.utils.KahaDBUtils.showException;
 
-public class JournalStatistic {
+public final class JournalStatistic {
     //region private
     private final File file;
     private final LinkedList<DestinationStatistic> topicsDestinationStatistics = new LinkedList<>();

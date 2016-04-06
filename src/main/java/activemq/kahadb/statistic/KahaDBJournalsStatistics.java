@@ -12,9 +12,10 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.NotDirectoryException;
 
+import static activemq.Utils.*;
 import static activemq.kahadb.utils.KahaDBUtils.*;
 
-public class KahaDBJournalsStatistics {
+public final class KahaDBJournalsStatistics {
     //region private
     private void showStatistic(File sourceDir, boolean useAnyKeyToContinue) throws IOException {
         showJournalStatistic(createJournal(sourceDir), useAnyKeyToContinue);

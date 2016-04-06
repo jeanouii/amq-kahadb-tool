@@ -7,9 +7,9 @@ import javax.management.OperationsException;
 import java.util.Iterator;
 import java.util.LinkedList;
 
-import static activemq.kahadb.utils.KahaDBUtils.isNullOrEmpty;
+import static activemq.Utils.isNullOrEmpty;
 
-public class DestinationStatistic {
+public final class DestinationStatistic {
     //region private
     private final KahaDestination.DestinationType destinationType;
     private final String destinationId;

@@ -1,9 +1,6 @@
 package activemq.kahadb.optimizer;
 
-import activemq.kahadb.optimizer.locations.AckMessageLocation;
 import activemq.kahadb.optimizer.destinations.PoolDestinationData;
-import activemq.kahadb.optimizer.locations.MessageLocation;
-import activemq.kahadb.optimizer.locations.SubscriptionLocation;
 import org.apache.activemq.store.kahadb.disk.journal.Journal;
 import org.apache.activemq.store.kahadb.disk.journal.Location;
 import org.apache.activemq.util.ByteSequence;
@@ -11,9 +8,10 @@ import org.apache.activemq.util.ByteSequence;
 import java.io.File;
 import java.io.IOException;
 
+import static activemq.Utils.*;
 import static activemq.kahadb.utils.KahaDBUtils.*;
 
-public class KahaDBJournalsOptimizer {
+public final class KahaDBJournalsOptimizer {
     //region private
     private class Journals {
         //region private
@@ -76,9 +74,10 @@ public class KahaDBJournalsOptimizer {
         final PoolDestinationData poolDestinationData = new PoolDestinationData();
 
         System.out.println("START JOURNALS ANALYSIS");
-        System.out.printf("- Directory: '%s'.\r\n", sourceJournal.getDirectory().getPath());
-        System.out.printf("- Journal size: %s.\r\n", bytesToString(sourceJournal.getMaxFileLength()));
         System.out.println();
+        System.out.printf("- Directory: '%s'.\r\n", sourceJournal.getDirectory().getPath());
+        System.out.println();
+        System.out.printf("- Journal size: %s.\r\n", bytesToString(sourceJournal.getMaxFileLength()));
 
         try {
             long start = System.currentTimeMillis();
@@ -93,14 +92,19 @@ public class KahaDBJournalsOptimizer {
 
             long end = System.currentTimeMillis();
             System.out.printf("- Journals: %s (Total size: %s).\n\r", sourceJournal.getFiles().size(), bytesToString(sourceJournal.getDiskSize()));
-            System.out.printf("- Topics: %s.\n\r", poolDestinationData.getTopicCount());
-            System.out.printf("- Queues: %s.\n\r", poolDestinationData.getQueueCount());
+            showCount("- Topics: %s.", poolDestinationData.getTopicCount());
+            showCount("- Queues: %s.", poolDestinationData.getQueueCount());
+            showCount("- Committed transactions: %s.", poolDestinationData.getCommittedTransactionCount());
+            showCount("- Prepared transactions: %s.", poolDestinationData.getPreparedTransactionCount());
+            System.out.println();
             System.out.printf("- It took time: %s seconds.\r\n", ((end - start) / 1000.0f));
         }
         catch (Throwable throwable) {
             showException(throwable);
         }
         finally {
+            poolDestinationData.gc();
+
             try {
                 sourceJournal.close();
             } catch (IOException e) {  }
@@ -111,19 +115,19 @@ public class KahaDBJournalsOptimizer {
     //-------------------------------------------------------------------------
     private void dataOptimization(Journal sourceJournal, PoolDestinationData sourcePoolDestinationData, Journal targetJournal) {
         System.out.println("START JOURNALS DATA OPTIMIZATION");
+        System.out.println();
 
         try {
             long start = System.currentTimeMillis();
 
             targetJournal.start();
 
-            topicsSubscriptionsMove(sourceJournal, sourcePoolDestinationData, targetJournal);
-            topicsMessagesMove(sourceJournal, sourcePoolDestinationData, targetJournal);
-            queuesMessagesMove(sourceJournal, sourcePoolDestinationData, targetJournal);
+            subscriptionsMove(sourceJournal, sourcePoolDestinationData.getSubscriptionLocations(), targetJournal);
+            messagesMove(sourceJournal, sourcePoolDestinationData.getMessageLocations(), targetJournal);
 
             long end = System.currentTimeMillis();
-            System.out.println();
             System.out.printf("- Journals remained: %s (Total size: %s).\n\r", targetJournal.getFiles().size(), bytesToString(targetJournal.getDiskSize()));
+            System.out.println();
             System.out.printf("- It took time: %s seconds.\r\n", ((end - start) / 1000.0f));
         }
         catch (Throwable throwable) {
@@ -135,20 +139,23 @@ public class KahaDBJournalsOptimizer {
             } catch (IOException e) {  }
         }
     }
-    private void topicsSubscriptionsMove(Journal sourceJournal, PoolDestinationData sourcePoolDestinationData, Journal targetJournal) {
+    private void subscriptionsMove(Journal sourceJournal, Location[] locations, Journal targetJournal) {
+        if(locations.length == 0) {
+            return;
+        }
+
         try {
             long start = System.currentTimeMillis();
 
-            SubscriptionLocation[] topicsSubscriptionLocations = sourcePoolDestinationData.getTopicsSubscriptionLocations();
             sourceJournal.start();
 
-            for (SubscriptionLocation subscriptionLocation : topicsSubscriptionLocations) {
-                ByteSequence sequence = sourceJournal.read(subscriptionLocation.getLocation());
+            for(Location location : locations) {
+                ByteSequence sequence = sourceJournal.read(location);
                 targetJournal.write(sequence, true);
             }
 
             long end = System.currentTimeMillis();
-            System.out.printf("- Topics subscriptions moved: %s (It took time: %s seconds).\r\n", topicsSubscriptionLocations.length, ((end - start) / 1000.0f));
+            System.out.printf("- Subscriptions moved: %s (It took time: %s seconds).\r\n", locations.length, ((end - start) / 1000.0f));
         }
         catch (Throwable throwable) {
             showException(throwable);
@@ -159,54 +166,23 @@ public class KahaDBJournalsOptimizer {
             } catch (IOException e) { }
         }
     }
-    private void topicsMessagesMove(Journal sourceJournal, PoolDestinationData sourcePoolDestinationData, Journal targetJournal) {
+    private void messagesMove(Journal sourceJournal, Location[] locations, Journal targetJournal) {
+        if(locations.length == 0) {
+            return;
+        }
+
         try {
             long start = System.currentTimeMillis();
 
-            MessageLocation[] topicsMessageLocations = sourcePoolDestinationData.getTopicsMessageLocations();
             sourceJournal.start();
 
-            int messagesCounter = topicsMessageLocations.length;
-            for(MessageLocation messageLocation : topicsMessageLocations) {
-                ByteSequence sequence = sourceJournal.read(messageLocation.getLocation());
-                targetJournal.write(sequence, true);
-
-                AckMessageLocation[] ackMessageLocations = messageLocation.getAckMessageLocations();
-                messagesCounter += ackMessageLocations.length;
-
-                for(AckMessageLocation ackMessageLocation : ackMessageLocations) {
-                    sequence = sourceJournal.read(ackMessageLocation.getLocation());
-                    targetJournal.write(sequence, true);
-                }
-            }
-
-            long end = System.currentTimeMillis();
-            System.out.printf("- Topics messages moved: %s (It took time: %s seconds).\r\n", messagesCounter, ((end - start) / 1000.0f));
-        }
-        catch (Throwable throwable) {
-            showException(throwable);
-        }
-        finally {
-            try {
-                sourceJournal.close();
-            } catch (IOException e) {  }
-        }
-    }
-    private void queuesMessagesMove(Journal sourceJournal, PoolDestinationData sourcePoolDestinationData, Journal targetJournal) {
-        try {
-            long start = System.currentTimeMillis();
-
-            MessageLocation[] queuesMessageLocations = sourcePoolDestinationData.getQueuesMessageLocations();
-            sourceJournal.start();
-
-            int messagesCounter = queuesMessageLocations.length;
-            for(MessageLocation messageLocation : queuesMessageLocations) {
-                ByteSequence sequence = sourceJournal.read(messageLocation.getLocation());
+            for(Location location : locations) {
+                ByteSequence sequence = sourceJournal.read(location);
                 targetJournal.write(sequence, true);
             }
 
             long end = System.currentTimeMillis();
-            System.out.printf("- Queues messages moved: %s (It took time: %s seconds).\r\n", messagesCounter, ((end - start) / 1000.0f));
+            System.out.printf("- Messages moved: %s (It took time: %s seconds).\r\n", locations.length, ((end - start) / 1000.0f));
         }
         catch (Throwable throwable) {
             showException(throwable);
@@ -220,6 +196,7 @@ public class KahaDBJournalsOptimizer {
     //-------------------------------------------------------------------------
     private void renameDirs(File sourceDir, File targetDir) {
         System.out.println("RENAME JOURNALS DIRECTORIES");
+        System.out.println();
 
         try {
             String sourceDirPath = sourceDir.getCanonicalPath();
@@ -234,8 +211,16 @@ public class KahaDBJournalsOptimizer {
             System.out.printf("- Directory optimized: '%s'.\r\n", sourceDirPath);
             System.out.printf("- Backup directory: '%s'.\r\n", newSourceDirPath);
 
+            System.out.println();
+
         } catch (Throwable throwable) {
             showException(throwable);
+        }
+    }
+    //-------------------------------------------------------------------------
+    private void showCount(String format, int count) {
+        if(count != 0) {
+            System.out.printf(format + "\r\n", count);
         }
     }
     //endregion
