@@ -102,7 +102,7 @@ result:
    1 CommandType: KAHA_SUBSCRIPTION_COMMAND - TOPIC (DestId: 1:test.topic.0), ClientId: client0, SubKey: client0:EXACTLY_ONCE:test/topic/0.
    2 CommandType: KAHA_SUBSCRIPTION_COMMAND - TOPIC (DestId: 1:test.topic.1), ClientId: client1, SubKey: client1:EXACTLY_ONCE:test/topic/1.
    3 CommandType: KAHA_SUBSCRIPTION_COMMAND - TOPIC (DestId: 1:test.topic.2), ClientId: client2, SubKey: client2:EXACTLY_ONCE:test/topic/2.
-   4 CommandType: KAHA_ADD_MESSAGE_COMMAND - TOPIC (DestId: 1:test.topic.2), MsgId: ID:korolevPC-41418-1459948891354-1:1:1:1:1, TransId: TX:ID:compPC-41418-1459948891354-1:1:1.
+   4 CommandType: KAHA_ADD_MESSAGE_COMMAND - TOPIC (DestId: 1:test.topic.2), MsgId: ID:compPC-41418-1459948891354-1:1:1:1:1, TransId: TX:ID:compPC-41418-1459948891354-1:1:1.
    5 CommandType: KAHA_ADD_MESSAGE_COMMAND - TOPIC (DestId: 1:test.topic.2), MsgId: ID:compPC-41418-1459948891354-1:1:1:1:2, TransId: TX:ID:compPC-41418-1459948891354-1:1:1.
    6 CommandType: KAHA_ADD_MESSAGE_COMMAND - TOPIC (DestId: 1:test.topic.2), MsgId: ID:compPC-41418-1459948891354-1:1:1:1:3, TransId: TX:ID:compPC-41418-1459948891354-1:1:1.
    7 CommandType: KAHA_ADD_MESSAGE_COMMAND - TOPIC (DestId: 1:test.topic.2), MsgId: ID:compPC-41418-1459948891354-1:1:1:1:4, TransId: TX:ID:compPC-41418-1459948891354-1:1:1.
