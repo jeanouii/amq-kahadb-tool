@@ -1,3 +1,11 @@
-Manifest-Version: 1.1
+Manifest-Version: 1.2
 Main-Class: org.hill30.activemq.kahadb.optimizer.Run
+
+Name: KahaDBJournalsOptimizer
+Specification-Title: KahaDBJournalsOptimizer
+Specification-Version: 1.1.0
+Specification-Vendor: Hill30 Inc.
+Implementation-Title: KahaDBJournalsOptimizer
+Implementation-Version: 1.1.0
+Implementation-Vendor: : Hill30 Inc.
 

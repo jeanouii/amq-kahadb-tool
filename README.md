@@ -30,7 +30,7 @@ A data file may be in-use because:
 
 ```
    1. Stop ActiveMQ.
-   2. Execute: java -jar .\out\artifacts\KahaDBJournalsOptimizer.jar "journals directory"
+   2. Execute: java -jar .\<release version>\KahaDBJournalsOptimizer.jar "journals directory"
    3. Start ActiveMQ.
 ```
 
@@ -39,7 +39,7 @@ A data file may be in-use because:
 example:
 
 ```
-   java -jar .\out\artifacts\KahaDBJournalsOptimizer.jar "D:\apache-activemq-5.13.2\data\kahadb"
+   java -jar .\<release version>\KahaDBJournalsOptimizer.jar "D:\apache-activemq-5.13.2\data\kahadb"
 ```
 
 result:
@@ -82,7 +82,7 @@ result:
 ### How to use
 
 ```
-   java -jar .\out\artifacts\KahaDBJournalsReader.jar "journals directory"
+   java -jar .\<release version>\KahaDBJournalsReader.jar "journals directory"
 ```
 
 ### The Look
@@ -90,7 +90,7 @@ result:
 example:
 
 ```
-   java -jar .\out\artifacts\KahaDBJournalsReader.jar "D:\apache-activemq-5.13.2\data\kahadb"
+   java -jar .\<release version>\KahaDBJournalsReader.jar "D:\apache-activemq-5.13.2\data\kahadb"
 ```
 
 result:
@@ -118,7 +118,7 @@ result:
 ### How to use
 
 ```
-   java -jar .\out\artifacts\KahaDBJournalsStatistics.jar "journals directory"
+   java -jar .\<release version>\KahaDBJournalsStatistics.jar "journals directory"
 ```
 
 ### The Look
@@ -126,7 +126,7 @@ result:
 example:
 
 ```
-   java -jar .\out\artifacts\KahaDBJournalsStatistics.jar "D:\apache-activemq-5.13.2\data\kahadb"
+   java -jar .\<release version>\KahaDBJournalsStatistics.jar "D:\apache-activemq-5.13.2\data\kahadb"
 ```
 
 result:
