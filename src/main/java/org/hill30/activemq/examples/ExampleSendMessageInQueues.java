@@ -2,7 +2,7 @@ package org.hill30.activemq.examples;
 
 import org.hill30.activemq.clients.Producer;
 
-import static org.hill30.activemq.Utils.*;
+import static org.hill30.activemq.Utils.showException;
 
 public class ExampleSendMessageInQueues {
     //region private

@@ -1,7 +1,13 @@
 package org.hill30.activemq.kahadb.statistic.statistics;
 
 import org.apache.activemq.store.kahadb.JournalCommand;
-import org.apache.activemq.store.kahadb.data.*;
+import org.apache.activemq.store.kahadb.data.KahaAddMessageCommand;
+import org.apache.activemq.store.kahadb.data.KahaDestination;
+import org.apache.activemq.store.kahadb.data.KahaEntryType;
+import org.apache.activemq.store.kahadb.data.KahaRemoveDestinationCommand;
+import org.apache.activemq.store.kahadb.data.KahaRemoveMessageCommand;
+import org.apache.activemq.store.kahadb.data.KahaSubscriptionCommand;
+import org.apache.activemq.store.kahadb.data.KahaUpdateMessageCommand;
 import org.apache.activemq.store.kahadb.disk.util.DataByteArrayInputStream;
 import org.apache.activemq.util.ByteSequence;
 
@@ -10,8 +16,9 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.LinkedList;
 
-import static org.hill30.activemq.Utils.*;
-import static org.hill30.activemq.kahadb.utils.KahaDBUtils.*;
+import static org.hill30.activemq.Utils.showException;
+import static org.hill30.activemq.kahadb.utils.KahaDBUtils.getDestinationId;
+import static org.hill30.activemq.kahadb.utils.KahaDBUtils.isDestinationTopic;
 
 public final class JournalStatistic {
     //region private

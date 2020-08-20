@@ -6,7 +6,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Set;
 
-import static org.hill30.activemq.Utils.*;
+import static org.hill30.activemq.Utils.isNullOrEmpty;
 
 public final class MessageLocation {
     //region private

@@ -2,7 +2,7 @@ package org.hill30.activemq.kahadb.optimizer.locations;
 
 import org.apache.activemq.store.kahadb.disk.journal.Location;
 
-import static org.hill30.activemq.Utils.*;
+import static org.hill30.activemq.Utils.isNullOrEmpty;
 
 public final class SubscriptionLocation {
     //region private

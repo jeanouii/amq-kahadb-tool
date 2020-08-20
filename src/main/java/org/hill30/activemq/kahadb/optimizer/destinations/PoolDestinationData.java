@@ -1,22 +1,38 @@
 package org.hill30.activemq.kahadb.optimizer.destinations;
 
-import org.hill30.activemq.Utils;
-import org.hill30.activemq.kahadb.optimizer.locations.MessageLocation;
-import org.hill30.activemq.kahadb.utils.KahaDBTransactionIdConversion;
-import org.hill30.activemq.kahadb.optimizer.locations.AckMessageLocation;
-import org.hill30.activemq.kahadb.optimizer.locations.SubscriptionLocation;
-
 import org.apache.activemq.command.TransactionId;
 import org.apache.activemq.store.kahadb.JournalCommand;
-import org.apache.activemq.store.kahadb.data.*;
+import org.apache.activemq.store.kahadb.data.KahaAddMessageCommand;
+import org.apache.activemq.store.kahadb.data.KahaCommitCommand;
+import org.apache.activemq.store.kahadb.data.KahaDestination;
+import org.apache.activemq.store.kahadb.data.KahaEntryType;
+import org.apache.activemq.store.kahadb.data.KahaPrepareCommand;
+import org.apache.activemq.store.kahadb.data.KahaRemoveDestinationCommand;
+import org.apache.activemq.store.kahadb.data.KahaRemoveMessageCommand;
+import org.apache.activemq.store.kahadb.data.KahaRollbackCommand;
+import org.apache.activemq.store.kahadb.data.KahaSubscriptionCommand;
+import org.apache.activemq.store.kahadb.data.KahaTransactionInfo;
+import org.apache.activemq.store.kahadb.data.KahaUpdateMessageCommand;
 import org.apache.activemq.store.kahadb.disk.journal.Location;
 import org.apache.activemq.store.kahadb.disk.util.DataByteArrayInputStream;
 import org.apache.activemq.util.ByteSequence;
+import org.hill30.activemq.Utils;
+import org.hill30.activemq.kahadb.optimizer.locations.AckMessageLocation;
+import org.hill30.activemq.kahadb.optimizer.locations.MessageLocation;
+import org.hill30.activemq.kahadb.optimizer.locations.SubscriptionLocation;
+import org.hill30.activemq.kahadb.utils.KahaDBTransactionIdConversion;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
 
-import static org.hill30.activemq.kahadb.utils.KahaDBUtils.*;
+import static org.hill30.activemq.kahadb.utils.KahaDBUtils.getDestinationId;
+import static org.hill30.activemq.kahadb.utils.KahaDBUtils.isDestinationTopic;
 
 public class PoolDestinationData {
     //region private

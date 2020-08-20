@@ -1,10 +1,13 @@
 package org.hill30.activemq.clients;
 
 import org.apache.activemq.store.kahadb.data.KahaDestination;
-import org.eclipse.paho.client.mqttv3.*;
+import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
+import org.eclipse.paho.client.mqttv3.MqttCallback;
+import org.eclipse.paho.client.mqttv3.MqttClient;
+import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
+import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 import javax.jms.InvalidDestinationException;
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import java.io.InvalidObjectException;
 import java.net.InetAddress;
 import java.util.Date;

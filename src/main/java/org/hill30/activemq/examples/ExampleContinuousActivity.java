@@ -10,7 +10,9 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Random;
 
-import static org.hill30.activemq.Utils.*;
+import static org.hill30.activemq.Utils.randInt;
+import static org.hill30.activemq.Utils.showException;
+import static org.hill30.activemq.Utils.thread;
 
 public class ExampleContinuousActivity {
     //region private

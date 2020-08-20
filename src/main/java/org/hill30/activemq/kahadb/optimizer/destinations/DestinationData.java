@@ -1,14 +1,13 @@
 package org.hill30.activemq.kahadb.optimizer.destinations;
 
+import org.apache.activemq.store.kahadb.disk.journal.Location;
 import org.hill30.activemq.kahadb.optimizer.locations.MessageLocation;
 import org.hill30.activemq.kahadb.optimizer.locations.SubscriptionLocation;
-
-import org.apache.activemq.store.kahadb.disk.journal.Location;
 
 import java.util.Iterator;
 import java.util.LinkedList;
 
-import static org.hill30.activemq.Utils.*;
+import static org.hill30.activemq.Utils.isNullOrEmpty;
 
 public final class DestinationData {
     //region private

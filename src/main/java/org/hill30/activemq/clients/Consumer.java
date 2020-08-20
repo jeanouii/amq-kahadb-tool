@@ -1,17 +1,24 @@
 package org.hill30.activemq.clients;
 
-import org.apache.activemq.*;
+import org.apache.activemq.ActiveMQConnection;
+import org.apache.activemq.ActiveMQConnectionFactory;
+import org.apache.activemq.ActiveMQMessageConsumer;
+import org.apache.activemq.ActiveMQSession;
 import org.apache.activemq.store.kahadb.data.KahaDestination;
 
-import javax.jms.*;
+import javax.jms.JMSException;
 import javax.jms.Message;
+import javax.jms.Queue;
+import javax.jms.Session;
+import javax.jms.TextMessage;
+import javax.jms.Topic;
 import javax.management.OperationsException;
 import java.io.InvalidObjectException;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedList;
 
-import static org.hill30.activemq.Utils.*;
+import static org.hill30.activemq.Utils.isNullOrEmpty;
 
 public class Consumer {
     //region private

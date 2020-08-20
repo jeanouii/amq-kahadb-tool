@@ -7,7 +7,7 @@ import javax.management.OperationsException;
 import java.util.Iterator;
 import java.util.LinkedList;
 
-import static org.hill30.activemq.Utils.*;
+import static org.hill30.activemq.Utils.isNullOrEmpty;
 
 public final class DestinationStatistic {
     //region private

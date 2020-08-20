@@ -1,16 +1,21 @@
 package org.hill30.activemq.kahadb.optimizer;
 
-import org.hill30.activemq.kahadb.optimizer.destinations.PoolDestinationData;
-
 import org.apache.activemq.store.kahadb.disk.journal.Journal;
 import org.apache.activemq.store.kahadb.disk.journal.Location;
 import org.apache.activemq.util.ByteSequence;
+import org.hill30.activemq.kahadb.optimizer.destinations.PoolDestinationData;
 
 import java.io.File;
 import java.io.IOException;
 
-import static org.hill30.activemq.Utils.*;
-import static org.hill30.activemq.kahadb.utils.KahaDBUtils.*;
+import static org.hill30.activemq.Utils.deleteDir;
+import static org.hill30.activemq.Utils.isNullOrEmpty;
+import static org.hill30.activemq.Utils.pressAnyKeyToContinue;
+import static org.hill30.activemq.Utils.showException;
+import static org.hill30.activemq.Utils.showSeparator;
+import static org.hill30.activemq.kahadb.utils.KahaDBUtils.bytesToString;
+import static org.hill30.activemq.kahadb.utils.KahaDBUtils.createJournal;
+import static org.hill30.activemq.kahadb.utils.KahaDBUtils.getJournalSize;
 
 public final class KahaDBJournalsOptimizer {
     //region private

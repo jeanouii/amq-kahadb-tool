@@ -1,14 +1,22 @@
 package org.hill30.activemq.clients;
 
-import org.apache.activemq.*;
+import org.apache.activemq.ActiveMQConnection;
+import org.apache.activemq.ActiveMQConnectionFactory;
+import org.apache.activemq.ActiveMQMessageProducer;
+import org.apache.activemq.ActiveMQSession;
 import org.apache.activemq.Message;
 import org.apache.activemq.store.kahadb.data.KahaDestination;
 
-import javax.jms.*;
+import javax.jms.DeliveryMode;
+import javax.jms.Destination;
+import javax.jms.JMSException;
+import javax.jms.Session;
+import javax.jms.TextMessage;
 import java.io.InvalidObjectException;
 import java.util.Date;
 
-import static org.hill30.activemq.Utils.*;
+import static org.hill30.activemq.Utils.isNullOrEmpty;
+import static org.hill30.activemq.Utils.showException;
 
 public class Producer {
     //region private
